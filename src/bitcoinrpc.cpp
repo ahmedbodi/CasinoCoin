@@ -2139,10 +2139,10 @@ Value getblocktemplate(const Array& params, bool fHelp)
     if (strMode == "template")
     {
         if (vNodes.empty())
-            throw JSONRPCError(-9, "CasinoCoin is not connected!");
+            throw JSONRPCError(-9, "GrandCoin is not connected!");
 
         if (IsInitialBlockDownload())
-            throw JSONRPCError(-10, "CasinoCoin is downloading blocks...");
+            throw JSONRPCError(-10, "GrandCoin is downloading blocks...");
 
         static CReserveKey reservekey(pwalletMain);
 
@@ -2259,7 +2259,30 @@ Value getblocktemplate(const Array& params, bool fHelp)
 
     throw JSONRPCError(-8, "Invalid mode");
 }
+Value submitblock(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() < 1 || params.size() > 2)
+        throw runtime_error(
+            "submitblock <hex data> [optional-params-obj]\n"
+            "[optional-params-obj] parameter is currently ignored.\n"
+            "Attempts to submit new block to network.\n"
+            "See https://en.bitcoin.it/wiki/BIP_0022 for full specification.");
 
+ vector<unsigned char> blockData(ParseHex(params[0].get_str()));
+    CDataStream ssBlock(blockData, SER_NETWORK, PROTOCOL_VERSION);
+    CBlock block;
+    try {
+        ssBlock >> block;
+    }
+    catch (std::exception &e) {
+        throw JSONRPCError(-22, "Block decode failed");
+}
+   bool fAccepted = ProcessBlock(NULL, &block);
+     if (!fAccepted)
+         throw JSONRPCError(-23, "Block rejected");
+ 
+     return true;
+}
 Value getrawmempool(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
